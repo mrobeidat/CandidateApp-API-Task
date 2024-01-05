@@ -11,5 +11,3 @@ def health_check():
 @app.get('/')
 def home():
     return {"message": "Hello World!"}
-
-
