@@ -1,11 +1,13 @@
 from pydantic import BaseModel
 from typing import Literal
+import uuid
+
 
 class candidate(BaseModel):
     first_name: str
     last_name: str
     email: str
-    UUID: str
+    UUID: uuid.UUID
     career_level: str
     job_major: str
     years_of_experience: int
