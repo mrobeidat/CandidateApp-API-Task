@@ -3,6 +3,9 @@ from models.Candidate import candidate
 from schema.schemas import list_serialized
 from setting.database import collection_name
 from uuid import UUID
+from fastapi.responses import StreamingResponse
+import pandas as pd
+import io
 
 router = APIRouter()
 
@@ -11,6 +14,20 @@ router = APIRouter()
 @router.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+# Generate a CSV file containing the candidates profiles data
+@router.get("/generate-report")
+async def generate_report():
+    candidates_data = collection_name.find()
+    candidates_df = pd.DataFrame(list(candidates_data))
+    csv_data = candidates_df.to_csv(index=False)
+
+    headers = {
+        "Content-Disposition": "attachment; filename=candidates_report.csv",
+        "Content-Type": "text/csv",
+    }
+    return StreamingResponse(io.StringIO(csv_data), headers=headers)
 
 
 # Candidates route
