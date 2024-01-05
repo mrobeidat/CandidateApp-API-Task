@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Query
 from models.Candidate import candidate
-from schema.schemas import list_serialized
-from setting.database import collection_name
+from models.User import user
+from schema.schemas import candidate_serialized_List
+from setting.database import candidate_collection
+from setting.database import users_collection
 from uuid import UUID
 from fastapi.responses import StreamingResponse
 import pandas as pd
@@ -19,7 +21,7 @@ def health_check():
 # Generate a CSV file containing the candidates profiles data
 @router.get("/generate-report")
 async def generate_report():
-    candidates_data = collection_name.find()
+    candidates_data = candidate_collection.find()
     candidates_df = pd.DataFrame(list(candidates_data))
     csv_data = candidates_df.to_csv(index=False)
 
@@ -62,9 +64,9 @@ async def get_candidates(
                     {"gender": {"$regex": search, "$options": "i"}},
                 ]
             }
-        candidates = list_serialized(collection_name.find(query))
+        candidates = candidate_serialized_List(candidate_collection.find(query))
     else:
-        candidates = list_serialized(collection_name.find())
+        candidates = candidate_serialized_List(candidate_collection.find())
 
     return candidates
 
@@ -73,7 +75,7 @@ async def get_candidates(
 @router.get("/candidate/{id}")
 async def get_candidate(id: str):
     candidate_id = UUID(id)
-    candidate = collection_name.find_one({"_id": candidate_id}, {"_id": 0})
+    candidate = candidate_collection.find_one({"_id": candidate_id}, {"_id": 0})
 
     if candidate:
         return candidate
@@ -83,17 +85,26 @@ async def get_candidate(id: str):
 
 @router.post("/candidate")
 async def Create_Candidate(Candidate: candidate):
-    collection_name.insert_one(dict(Candidate))
+    candidate_collection.insert_one(dict(Candidate))
     return {"message": "Candidate Created successfully"}
 
 
 @router.put("/candidate/{id}")
 async def update_candidate(id: str, Candidate: candidate):
-    collection_name.find_one_and_update({"_id": UUID(id)}, {"$set": dict(Candidate)})
+    candidate_collection.find_one_and_update(
+        {"_id": UUID(id)}, {"$set": dict(Candidate)}
+    )
     return {"message": "Candidate updated successfully"}
 
 
 @router.delete("/candidate/{id}")
 async def delete_candidate(id: str):
-    collection_name.find_one_and_delete({"_id": UUID(id)})
+    candidate_collection.find_one_and_delete({"_id": UUID(id)})
     return {"message": "Candidate deleted successfully"}
+
+
+############# Populate the user collection to the database #############
+@router.post("/user")
+async def Create_User(User: user):
+    users_collection.insert_one(dict(User))
+    return {"message": "User Created successfully"}

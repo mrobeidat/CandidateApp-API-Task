@@ -1,10 +1,17 @@
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
 
 client = MongoClient(
-    "mongodb+srv://mrobeidat:yousef9611@cluster0.1pdhgc5.mongodb.net/?retryWrites=true&w=majority",
+    DB_URL,
     uuidRepresentation="standard",
 )
 
 db = client.Candidates_db
 
-collection_name = db["Candidates_collection"]
+candidate_collection = db["Candidates_collection"]
+
+users_collection = db["Users_collection"]
