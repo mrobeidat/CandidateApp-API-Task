@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
-from models.Candidate import candidate
-from models.User import user
-from schema.schemas import candidate_serialized_List
-from setting.database import candidate_collection
-from setting.database import users_collection
+from ..models.Candidate import candidate
+from ..models.User import user
+from ..schema.schemas import candidate_serialized_List
+from ..setting.database import candidate_collection
+from ..setting.database import users_collection
 from uuid import UUID
 from fastapi.responses import StreamingResponse
 import pandas as pd
