@@ -3,6 +3,7 @@ from typing import Literal
 import uuid
 
 
+# Defines a data model for candidate information with data validation using Pydantic's BaseModel.
 class candidate(BaseModel):
     first_name: str
     last_name: str

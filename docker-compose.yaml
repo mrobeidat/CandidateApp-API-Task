@@ -1,9 +1,13 @@
 version: '3'
 services:
   api:
+    # Build the Docker image from the current directory
     build: .
+    # Mount the local directory as a read-only volume inside the container
     volumes:
       - ./:/usr/src/application:ro
+      
+    # Command runs when the container starts
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - 8000:8000
