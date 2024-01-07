@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, Form
 from ..models.Candidate import candidate
-from ..models.User import user
+from ..models.User import user, UserCreate
 from ..schema.schemas import candidate_serialized_List
 from ..setting.database import candidate_collection
 from ..setting.database import users_collection
@@ -8,6 +8,12 @@ from uuid import UUID
 from fastapi.responses import StreamingResponse
 import pandas as pd
 import io
+from datetime import datetime
+from ..models.auth import (
+    get_current_user,
+    authenticate_user,
+    pwd_context,
+)
 
 router = APIRouter()
 
@@ -16,6 +22,21 @@ router = APIRouter()
 @router.get("/health")
 def health_check():
     return {"status": "ok"}
+
+# Register a new user and save it to DB
+@router.post("/register", response_model=dict)
+async def register(user_data: UserCreate):
+    hashed_password = pwd_context.hash(user_data.password)
+    user_data_dict = user_data.model_dump()
+    user_data_dict["hashed_password"] = hashed_password
+    user_data_dict["_id"] = str(datetime.utcnow())
+    users_collection.insert_one(user_data_dict)
+    return {"message": "User registered successfully"}
+
+# Handle user authentication and generate a token.
+@router.post("/token")
+async def login(username: str = Form(...), password: str = Form(...)):
+    return await authenticate_user(username, password)
 
 
 # Generate a CSV file containing the candidates profiles data
@@ -33,7 +54,7 @@ async def generate_report():
 
 
 # Candidates route
-@router.get("/all-candidates")
+@router.get("/all-candidates", dependencies=[Depends(get_current_user)])
 async def get_candidates(
     search: str = Query(None, title="Search", description="Search candidates by email")
 ):
@@ -72,8 +93,8 @@ async def get_candidates(
 
 
 ########### CRUD routes ###########
-@router.get("/candidate/{id}")
-async def get_candidate(id: str):
+@router.get("/candidate/{id}", dependencies=[Depends(get_current_user)])
+async def get_candidate_by_id(id: str):
     candidate_id = UUID(id)
     candidate = candidate_collection.find_one({"_id": candidate_id}, {"_id": 0})
 
@@ -83,13 +104,13 @@ async def get_candidate(id: str):
         return "Candidate not found"
 
 
-@router.post("/candidate")
+@router.post("/candidate", dependencies=[Depends(get_current_user)])
 async def Create_Candidate(Candidate: candidate):
     candidate_collection.insert_one(dict(Candidate))
     return {"message": "Candidate Created successfully"}
 
 
-@router.put("/candidate/{id}")
+@router.put("/candidate/{id}", dependencies=[Depends(get_current_user)])
 async def update_candidate(id: str, Candidate: candidate):
     candidate_collection.find_one_and_update(
         {"_id": UUID(id)}, {"$set": dict(Candidate)}
@@ -97,7 +118,7 @@ async def update_candidate(id: str, Candidate: candidate):
     return {"message": "Candidate updated successfully"}
 
 
-@router.delete("/candidate/{id}")
+@router.delete("/candidate/{id}", dependencies=[Depends(get_current_user)])
 async def delete_candidate(id: str):
     candidate_collection.find_one_and_delete({"_id": UUID(id)})
     return {"message": "Candidate deleted successfully"}
