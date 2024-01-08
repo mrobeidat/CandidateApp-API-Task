@@ -2,8 +2,7 @@ from fastapi import APIRouter, Query, Depends, Form
 from ..models.Candidate import candidate
 from ..models.User import user, UserCreate
 from ..schema.schemas import candidate_serialized_List
-from ..setting.database import candidate_collection
-from ..setting.database import users_collection
+from ..setting.database import candidate_collection, users_collection
 from uuid import UUID
 from fastapi.responses import StreamingResponse
 import pandas as pd
@@ -23,6 +22,7 @@ router = APIRouter()
 def health_check():
     return {"status": "ok"}
 
+
 # Register a new user and save it to DB
 @router.post("/register", response_model=dict)
 async def register(user_data: UserCreate):
@@ -32,6 +32,7 @@ async def register(user_data: UserCreate):
     user_data_dict["_id"] = str(datetime.utcnow())
     users_collection.insert_one(user_data_dict)
     return {"message": "User registered successfully"}
+
 
 # Handle user authentication and generate a token.
 @router.post("/token")
@@ -56,7 +57,7 @@ async def generate_report():
 # Candidates route
 @router.get("/all-candidates", dependencies=[Depends(get_current_user)])
 async def get_candidates(
-    search: str = Query(None, title="Search", description="Search candidates by email")
+    search: str = Query(None, title="Search", description="Search candidates")
 ):
     # Search by field value + global search using keywords.
     if search:
@@ -128,4 +129,4 @@ async def delete_candidate(id: str):
 @router.post("/user")
 async def Create_User(User: user):
     users_collection.insert_one(dict(User))
-    return {"message": "User Created successfully"}
+    return {"message": "User populated successfully"}
