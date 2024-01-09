@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 import pandas as pd
 import io
 from datetime import datetime
-from ..models.auth import (
+from ..utils.auth import (
     get_current_user,
     authenticate_user,
     pwd_context,

@@ -1,5 +1,5 @@
 from fastapi.security import OAuth2PasswordBearer
-from ..models.token_utils import create_token, decode_token
+from .token_utils import create_token, decode_token
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, APIRouter
 from datetime import timedelta
