@@ -28,8 +28,7 @@ def health_check():
 async def register(user_data: UserCreate):
     hashed_password = pwd_context.hash(user_data.password)
     user_data_dict = user_data.model_dump()
-    user_data_dict["hashed_password"] = hashed_password
-    user_data_dict["_id"] = str(datetime.utcnow())
+    user_data_dict["password"] = hashed_password
     users_collection.insert_one(user_data_dict)
     return {"message": "User registered successfully"}
 
